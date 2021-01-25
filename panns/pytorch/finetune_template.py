@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 import torch.utils.data
 
-from panns.pytorch.models import Cnn14, init_layer
+from panns.pytorch import models
 from panns.utils import config
 from panns.utils.utilities import get_filename
 
@@ -16,7 +16,7 @@ class Transfer_Cnn14(nn.Module):
         super(Transfer_Cnn14, self).__init__()
         audioset_classes_num = 527
 
-        self.base = Cnn14(sample_rate, window_size, hop_size, mel_bins, fmin, fmax, audioset_classes_num)
+        self.base = models.Cnn14(sample_rate, window_size, hop_size, mel_bins, fmin, fmax, audioset_classes_num)
 
         # Transfer to another task layer
         self.fc_transfer = nn.Linear(2048, classes_num, bias=True)
@@ -29,7 +29,7 @@ class Transfer_Cnn14(nn.Module):
         self.init_weights()
 
     def init_weights(self):
-        init_layer(self.fc_transfer)
+        models.init_layer(self.fc_transfer)
 
     def load_from_pretrain(self, pretrained_checkpoint_path):
         checkpoint = torch.load(pretrained_checkpoint_path)
@@ -64,7 +64,7 @@ def train(args):
     pretrain = True if pretrained_checkpoint_path else False
 
     # Model
-    Model = eval(model_type)
+    Model = getattr(models, model_type)
     model = Model(sample_rate, window_size, hop_size, mel_bins, fmin, fmax, classes_num, freeze_base)
 
     # Load pretrained model
